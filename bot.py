@@ -13,7 +13,7 @@ def home():
     return "AASHISH & AJIT VIP AI IS RUNNING!"
 
 def run_web():
-    port = int(os.environ.get("PORT", 8080))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
 # Gemini AI Setup

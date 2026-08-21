@@ -1,32 +1,45 @@
 import os
-import logging
+import threading
+from flask import Flask
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
-from google import genai
+import google.generativeai as genai
 
-logging.basicConfig(level=logging.INFO)
+# Web Server Render ke liye
+app = Flask(__name__)
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+@app.route('/')
+def home():
+    return "AASHISH & AJIT VIP AI IS RUNNING!"
 
-client = genai.Client(api_key=GEMINI_API_KEY)
+def run_web():
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
 
+# Gemini AI Setup
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-2.5-flash")
+
+# Telegram Bot Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("⚡ AASHISH & AJIT VIP AI IS ONLINE!")
+    await update.message.reply_text("⚡ AASHISH & AJIT VIP AI IS ONLINE! मुझसे कुछ भी पूछो।")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
     try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=update.message.text
-        )
+        response = model.generate_content(user_text)
         await update.message.reply_text(response.text)
     except Exception as e:
-        await update.message.reply_text("🚨 Processing error. Try again.")
+        await update.message.reply_text("अरे भाई, कुछ टेक्निकल एरर आ गया! फिर से ट्राई करो।")
 
 if __name__ == "__main__":
-    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.run_polling()
+    threading.Thread(target=run_web).start()
+    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+    application = ApplicationBuilder().token(bot_token).build()
+    
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    
+    application.run_polling()
+    
   

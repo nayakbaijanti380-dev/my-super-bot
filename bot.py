@@ -19,7 +19,6 @@ def run_web():
 # Gemini AI Setup
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-1.5-flash")
-
 # Telegram Bot Handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("⚡ AASHISH & AJIT VIP AI IS ONLINE! मुझसे कुछ भी पूछो।")
